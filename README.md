@@ -87,3 +87,6 @@ We welcome contributions from everyone! To ensure a smooth collaboration process
 
    Be open to feedback during the review process. Engage in discussions and make any necessary changes based on the feedback received.
 
+## License
+
+The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
