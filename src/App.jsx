@@ -43,6 +43,10 @@ function App() {
     setEditText("");
   };
 
+  const deleteTodo = (id) => {
+    setTodos(todos.filter(todo => todo.id !== id));
+  };
+
 
   return (
     <>
@@ -65,7 +69,7 @@ function App() {
               <span onClick={() => toggleTodo(task.id)} style={{textDecoration: task.completed ? "line-through" : "none",
           cursor: "pointer"}}>{task.text}</span>
                 <button onClick={() => startEdit(task)}>Edit</button>
-                <button onClick={() => setTodos(t => t.id !== task.id)}><i className="fa-solid fa-trash fa-shake" style={{color: "#ff0000"}}></i></button>
+                <button onClick={() => deleteTodo(task.id)}><i className="fa-solid fa-trash fa-shake" style={{color: "#ff0000"}}></i></button>
               </>
             )}
           
