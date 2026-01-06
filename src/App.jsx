@@ -7,6 +7,8 @@ function App() {
   const [editId, setEditId] = useState(null);
   const [editText, setEditText] = useState("");
 
+  const [filter, setFilter] = useState("all");
+
   const addTodo = () => {
     if(!text.trim()) return;
 
@@ -47,6 +49,11 @@ function App() {
     setTodos(todos.filter(todo => todo.id !== id));
   };
 
+  const filteredTodos = todos.filter(todo => {
+    if (filter === "active") return !todo.completed;
+    if (filter === "completed") return todo.completed;
+    return true;
+  });
 
   return (
     <>
@@ -55,9 +62,15 @@ function App() {
 
      <h1>Display Todo</h1>
 
+     <div>
+        <button onClick={() => setFilter("all")}>All</button>
+        <button onClick={() => setFilter("active")}>Active</button>
+        <button onClick={() => setFilter("completed")}>Completed</button>
+     </div>
+
      <ul>
       {
-        todos.map(task => (
+        filteredTodos.map(task => (
           <li key={task.id}>
             {editId === task.id ? (
               <>
@@ -77,6 +90,7 @@ function App() {
         ))
       }
      </ul>
+
     </>
   )
 }
