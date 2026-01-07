@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 
 function App() {
   const [todos, setTodos] = useState([]);
@@ -8,6 +8,25 @@ function App() {
   const [editText, setEditText] = useState("");
 
   const [filter, setFilter] = useState("all");
+
+  const [hydrated, setHydrated] = useState(false);
+
+  // load on mount
+  useEffect(() => {
+    // const saved = JSON.parse(localStorage.getItem("todos"));
+    // if (saved) setTodos(saved);
+    const saved = localStorage.getItem("todos");
+    if(saved) {
+      setTodos(JSON.parse(saved));
+    }
+    setHydrated(true);
+  },[]);
+
+  // save to localstorage
+  useEffect(() => {
+    if (!hydrated) return
+    localStorage.setItem("todos", JSON.stringify(todos));
+  },[todos,hydrated]);
 
   const addTodo = () => {
     if(!text.trim()) return;
@@ -58,6 +77,10 @@ function App() {
   return (
     <>
      <input value={text} onChange={e => setText(e.target.value)} placeholder='Enter your text' />
+     <select name="" id="">
+      <option value="">Saturday</option>
+      <option value="">Sunday</option>
+     </select>
      <button onClick={addTodo}>Save</button>
 
      <h1>Display Todo</h1>
