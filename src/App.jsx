@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState } from "react";
 
 function App() {
   const [todos, setTodos] = useState([]);
@@ -8,44 +8,82 @@ function App() {
   const [editText, setEditText] = useState("");
 
   const [filter, setFilter] = useState("all");
-
   const [hydrated, setHydrated] = useState(false);
 
-  // load on mount
+  const [schedule, setSchedule] = useState("");
+  const [dueDate, setDueDate] = useState("");
+
+  const [editSchedule, setEditSchedule] = useState("");
+  const [editDueDate, setEditDueDate] = useState("");
+
+  // ---------- DATE HELPERS ----------
+  const today = () => new Date().toISOString().split("T")[0];
+
+  const getRemainingWeekDays = () => {
+    const days = [];
+    const now = new Date();
+    const todayIndex = now.getDay();
+
+    for(let i = todayIndex; i <= 6; i++) {
+      const d = new Date(now);
+
+      d.setDate(now.getDate() + (i - todayIndex));
+
+      days.push({
+        label: d.toLocaleDateString("en-US", {weekday:"long"}),
+        value: d.toISOString().split("T")[0]
+      });
+    }
+
+    return days;
+  };
+
+  // LOAD from localStorage (once)
   useEffect(() => {
-    // const saved = JSON.parse(localStorage.getItem("todos"));
-    // if (saved) setTodos(saved);
     const saved = localStorage.getItem("todos");
-    if(saved) {
+    if (saved) {
       setTodos(JSON.parse(saved));
     }
     setHydrated(true);
-  },[]);
+  }, []);
 
-  // save to localstorage
+  // SAVE to localStorage (after load)
   useEffect(() => {
-    if (!hydrated) return
+    if (!hydrated) return;
     localStorage.setItem("todos", JSON.stringify(todos));
-  },[todos,hydrated]);
+  }, [todos, hydrated]);
+
+// Add todo list
+
+  const handleScheduleChange = (value) => {
+    setSchedule(value);
+    setDueDate("");
+
+    if (value === "daily") {
+      setDueDate(today());
+    }
+  };
 
   const addTodo = () => {
-    if(!text.trim()) return;
+    if (!text.trim() || !dueDate) return;
 
     setTodos([
       ...todos,
-      {id: Date.now(), text, completed: false}
+      { id: Date.now(), text, completed: false, schedule, dueDate },
     ]);
 
     setText("");
-
-    console.log("Todo: "+todos);
-    console.log("Text: "+text);
-
-  }
+    setSchedule("");
+    setDueDate("");
+  };
 
   const toggleTodo = (id) => {
     setTodos(
-      todos.map(todo => todo.id === id ? {...todo, completed:!todo.completed}:todo)
+      todos.map((todo) =>
+        todo.id === id
+          ? { ...todo, completed: !todo.completed }
+          : todo
+      )
     );
   };
 
@@ -56,8 +94,8 @@ function App() {
 
   const saveEdit = (id) => {
     setTodos(
-      todos.map(todo => 
-        todo.id === id ? {...todo, text:editText}:todo
+      todos.map((todo) =>
+        todo.id === id ? { ...todo, text: editText } : todo
       )
     );
     setEditId(null);
@@ -65,10 +103,10 @@ function App() {
   };
 
   const deleteTodo = (id) => {
-    setTodos(todos.filter(todo => todo.id !== id));
+    setTodos(todos.filter((todo) => todo.id !== id));
   };
 
-  const filteredTodos = todos.filter(todo => {
+  const filteredTodos = todos.filter((todo) => {
     if (filter === "active") return !todo.completed;
     if (filter === "completed") return todo.completed;
     return true;
@@ -76,46 +114,85 @@ function App() {
 
   return (
     <>
-     <input value={text} onChange={e => setText(e.target.value)} placeholder='Enter your text' />
-     <select name="" id="">
-      <option value="">Saturday</option>
-      <option value="">Sunday</option>
-     </select>
-     <button onClick={addTodo}>Save</button>
+      <input
+        value={text}
+        onChange={(e) => setText(e.target.value)}
+        placeholder="Enter your text"
+      />
+      <select value={schedule} onChange={(e) => handleScheduleChange(e.target.value)}>
+        <option value="">Select Schedule</option>
+        <option value="daily">Daily</option>
+        <option value="weekly">Weekly</option>
+        <option value="custom">Custom</option>
+      </select>
 
-     <h1>Display Todo</h1>
+      {schedule === "weekly" && (
+        <select value={dueDate} onChange={(e) => setDueDate(e.target.value)}>
+          <option value="">Select Day</option>
+          {getRemainingWeekDays().map((day) => (
+            <option key={day.value} value={day.value}>
+              {day.label}
+            </option>
+          ))}
+        </select>
+      )}
 
-     <div>
+      {schedule === "custom" && (
+        <input type="date" min={today()} value={dueDate}
+        onChange={(e) => setDueDate(e.target.value)} />
+      )}
+
+      <button onClick={addTodo}>Save</button>
+
+      <h1>Display Todo</h1>
+
+      <div>
         <button onClick={() => setFilter("all")}>All</button>
         <button onClick={() => setFilter("active")}>Active</button>
         <button onClick={() => setFilter("completed")}>Completed</button>
-     </div>
+      </div>
 
-     <ul>
-      {
-        filteredTodos.map(task => (
+      <ul>
+        {filteredTodos.map((task) => (
           <li key={task.id}>
             {editId === task.id ? (
               <>
-              <input value={editText} onChange={e => setEditText(e.target.value)} />
-              <button onClick={() => saveEdit(task.id)}>Save</button>
+                <input
+                  value={editText}
+                  onChange={(e) => setEditText(e.target.value)}
+                />
+
+                <select>
+                  <option value="">Select Schedule</option>
+                  <option value="daily">Daily</option>
+                  <option value="weekly">Weekly</option>
+                  <option value="custom">Custom</option>
+                </select>
+                <button onClick={() => saveEdit(task.id)}>Save</button>
               </>
-            ): (
+            ) : (
               <>
-              <span onClick={() => toggleTodo(task.id)} style={{textDecoration: task.completed ? "line-through" : "none",
-          cursor: "pointer"}}>{task.text}</span>
+                <span
+                  onClick={() => toggleTodo(task.id)}
+                  style={{
+                    textDecoration: task.completed
+                      ? "line-through"
+                      : "none",
+                    cursor: "pointer",
+                  }}
+                >
+                  {task.text}
+                </span>
+                <small style={{ marginLeft: "10px", color: "#0922dbff" }}>{task.dueDate}</small>
                 <button onClick={() => startEdit(task)}>Edit</button>
-                <button onClick={() => deleteTodo(task.id)}><i className="fa-solid fa-trash fa-shake" style={{color: "#ff0000"}}></i></button>
+                <button onClick={() => deleteTodo(task.id)}>Delete</button>
               </>
             )}
-          
           </li>
-        ))
-      }
-     </ul>
-
+        ))}
+      </ul>
     </>
-  )
+  );
 }
 
-export default App
+export default App;
